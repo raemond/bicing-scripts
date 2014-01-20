@@ -1,0 +1,42 @@
+inDirectory = '/Users/arae/Bicing/output/';
+outDirectory = '/Users/arae/Bicing/outputIms/';
+
+files = dir(strcat(inDirectory,'*.json'));
+
+images = cell(0);
+
+for file = files'
+    csv = load(strcat(inDirectory,file.name));
+    % Do some stuff
+    lat = csv(:,6);
+    lng = csv(:,7);
+    bikes = csv(:,4);
+    free = csv(:,5);
+
+    lat2 = round((lat - min(lat)) / (max(lat) - min(lat)) * 1000);
+	lng2 = round((lng - min(lng)) / (max(lng) - min(lng)) * 1000);
+	val2 = round( bikes ./ (bikes + free) * 1000 );
+	Y = zeros(1001,1001);
+
+	for i=1:length(id)
+		Y(lat2(i)+1, lng2(i)+1) = val2(i);
+	end
+
+	H = fspecial('gaussian',60,12);
+	Y2 = imfilter(Y,H,'replicate');
+	imwrite(Y2,strcat(outDirectory,file.name,'.png'))
+	images{end+1} = strcat(outDirectory,file.name,'.png');
+end
+
+%%%%%%
+
+outputVideo = VideoWriter(fullfile(outDirectory,'shuttle_out.avi'));
+outputVideo.FrameRate = 1;
+open(outputVideo);
+
+for ii = 1:length(images)
+    img = imread(fullfile(images{ii}));
+    writeVideo(outputVideo,img);
+end
+
+close(outputVideo);
